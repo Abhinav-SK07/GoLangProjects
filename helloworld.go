@@ -24,6 +24,9 @@ func PersonConstructor(name string,age int,gender string,address addr) *Person{
 	return &p
 
 }
+func displayMsg(){
+	fmt.Println("Hello, World!")
+}
 
 func main() {
 	p1 := PersonConstructor("tom",18,"male",addr{"123main","nj"})
@@ -31,4 +34,5 @@ func main() {
 	fmt.Println(p1.age)
 	fmt.Println(p1.gender)
 	fmt.Println(p1.address.street,p1.address.city)
+	displayMsg()
 }
