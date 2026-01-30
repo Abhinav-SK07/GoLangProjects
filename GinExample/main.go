@@ -1,219 +1,169 @@
 package main
 
 import (
-	"time"
-
+    "net/http"
+	"strconv"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
-// Article represents a blog article
-type Article struct {
-	ID        int       `json:"id"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
-	Author    string    `json:"author"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+// User represents a user in our system
+type User struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Age   int    `json:"age"`
 }
 
-// APIResponse represents a standard API response
-type APIResponse struct {
-	Success   bool        `json:"success"`
-	Data      interface{} `json:"data,omitempty"`
-	Message   string      `json:"message,omitempty"`
-	Error     string      `json:"error,omitempty"`
-	RequestID string      `json:"request_id,omitempty"`
+// Response represents a standard API response
+type Response struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Message string      `json:"message,omitempty"`
+	Error   string      `json:"error,omitempty"`
+	Code    int         `json:"code,omitempty"`
 }
 
 // In-memory storage
-var articles = []Article{
-	{ID: 1, Title: "Getting Started with Go", Content: "Go is a programming language...", Author: "John Doe", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-	{ID: 2, Title: "Web Development with Gin", Content: "Gin is a web framework...", Author: "Jane Smith", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+var users = []User{
+	{ID: 1, Name: "John Doe", Email: "john@example.com", Age: 30},
+	{ID: 2, Name: "Jane Smith", Email: "jane@example.com", Age: 25},
+	{ID: 3, Name: "Bob Wilson", Email: "bob@example.com", Age: 35},
 }
-var nextID = 3
+var nextID = 4
 
-func main() {
-	// TODO: Create Gin router without default middleware
-	// Use gin.New() instead of gin.Default()
-	r := gin.New()
-	
+func main(){
+	// TODO: Create Gin router
+	router := gin.Default()
 
-	// TODO: Setup custom middleware in correct order
-	// 1. ErrorHandlerMiddleware (first to catch panics)
-	// 2. RequestIDMiddleware
-	// 3. LoggingMiddleware
-	// 4. CORSMiddleware
-	// 5. RateLimitMiddleware
-	// 6. ContentTypeMiddleware
-
-	// TODO: Setup route groups
-	// Public routes (no authentication required)
-	// Protected routes (require authentication)
-
-	// TODO: Define routes
-	// Public: GET /ping, GET /articles, GET /articles/:id
-	// Protected: POST /articles, PUT /articles/:id, DELETE /articles/:id, GET /admin/stats
+	// TODO: Setup routes
+	router.GET("/users",getAllUsers) // GET /users - Get all users
+	router.GET("/users/:id",getUserByID) // GET /users/:id - Get user by ID
+	router.POST("/users",createUser) // POST /users - Create new user
+	router.PUT("/users/:id",updateUser) // PUT /users/:id - Update user
+	router.DELETE("/users/:id",deleteUser) // DELETE /users/:id - Delete user
+	router.GET("/users/search",searchUsers)  // GET /users/search - Search users by name
 
 	// TODO: Start server on port 8080
+	router.Run(":8080")
+}
+// TODO: Implement handler functions
+
+// getAllUsers handles GET /users
+func getAllUsers(c *gin.Context) {
+	// TODO: Return all users
+	c.JSON(http.StatusOK, users)
+	
+	
 }
 
-// TODO: Implement middleware functions
-
-// RequestIDMiddleware generates a unique request ID for each request
-func RequestIDMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// TODO: Generate UUID for request ID
-		// Use github.com/google/uuid package
-		// Store in context as "request_id"
-		// Add to response header as "X-Request-ID"
-
-		c.Next()
-	}
-}
-
-// LoggingMiddleware logs all requests with timing information
-func LoggingMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// TODO: Capture start time
-
-		c.Next()
-
-		// TODO: Calculate duration and log request
-		// Format: [REQUEST_ID] METHOD PATH STATUS DURATION IP USER_AGENT
-	}
-}
-
-// AuthMiddleware validates API keys for protected routes
-func AuthMiddleware() gin.HandlerFunc {
-	// TODO: Define valid API keys and their roles
-	// "admin-key-123" -> "admin"
-	// "user-key-456" -> "user"
-
-	return func(c *gin.Context) {
-		// TODO: Get API key from X-API-Key header
-		// TODO: Validate API key
-		// TODO: Set user role in context
-		// TODO: Return 401 if invalid or missing
-
-		c.Next()
-	}
-}
-
-// CORSMiddleware handles cross-origin requests
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// TODO: Set CORS headers
-		// Allow origins: http://localhost:3000, https://myblog.com
-		// Allow methods: GET, POST, PUT, DELETE, OPTIONS
-		// Allow headers: Content-Type, X-API-Key, X-Request-ID
-
-		// TODO: Handle preflight OPTIONS requests
-
-		c.Next()
-	}
-}
-
-// RateLimitMiddleware implements rate limiting per IP
-func RateLimitMiddleware() gin.HandlerFunc {
-	// TODO: Implement rate limiting
-	// Limit: 100 requests per IP per minute
-	// Use golang.org/x/time/rate package
-	// Set headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
-	// Return 429 if rate limit exceeded
-
-	return func(c *gin.Context) {
-		c.Next()
-	}
-}
-
-// ContentTypeMiddleware validates content type for POST/PUT requests
-func ContentTypeMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// TODO: Check content type for POST/PUT requests
-		// Must be application/json
-		// Return 415 if invalid content type
-
-		c.Next()
-	}
-}
-
-// ErrorHandlerMiddleware handles panics and errors
-func ErrorHandlerMiddleware() gin.HandlerFunc {
-	return gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
-		// TODO: Handle panics gracefully
-		// Return consistent error response format
-		// Include request ID in response
-	})
-}
-
-// TODO: Implement route handlers
-
-// ping handles GET /ping - health check endpoint
-func ping(c *gin.Context) {
-	// TODO: Return simple pong response with request ID
-}
-
-// getArticles handles GET /articles - get all articles with pagination
-func getArticles(c *gin.Context) {
-	// TODO: Implement pagination (optional)
-	// TODO: Return articles in standard format
-}
-
-// getArticle handles GET /articles/:id - get article by ID
-func getArticle(c *gin.Context) {
-	// TODO: Get article ID from URL parameter
-	// TODO: Find article by ID
-	// TODO: Return 404 if not found
-}
-
-// createArticle handles POST /articles - create new article (protected)
-func createArticle(c *gin.Context) {
-	// TODO: Parse JSON request body
-	// TODO: Validate required fields
-	// TODO: Add article to storage
-	// TODO: Return created article
-}
-
-// updateArticle handles PUT /articles/:id - update article (protected)
-func updateArticle(c *gin.Context) {
-	// TODO: Get article ID from URL parameter
-	// TODO: Parse JSON request body
-	// TODO: Find and update article
-	// TODO: Return updated article
-}
-
-// deleteArticle handles DELETE /articles/:id - delete article (protected)
-func deleteArticle(c *gin.Context) {
-	// TODO: Get article ID from URL parameter
-	// TODO: Find and remove article
-	// TODO: Return success message
-}
-
-// getStats handles GET /admin/stats - get API usage statistics (admin only)
-func getStats(c *gin.Context) {
-	// TODO: Check if user role is "admin"
-	// TODO: Return mock statistics
-	stats := map[string]interface{}{
-		"total_articles": len(articles),
-		"total_requests": 0, // Could track this in middleware
-		"uptime":         "24h",
+// getUserByID handles GET /users/:id
+func getUserByID(c *gin.Context) {
+    idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error:"Invalid user ID"})
+		return
 	}
 
-	// TODO: Return stats in standard format
+	// 2. Iterate through the slice to find the user
+	for _, user := range users {
+		if user.ID == id {
+			c.JSON(http.StatusOK, user)
+			return
+		}
+	}
+	// 3. Return 404 if not found
+	c.JSON(http.StatusNotFound, Response{Error:"User not found"})
 }
 
-// Helper functions
+// createUser handles POST /users
+func createUser(c *gin.Context) {
+	var newUser User
 
-// findArticleByID finds an article by ID
-func findArticleByID(id int) (*Article, int) {
-	// TODO: Implement article lookup
-	// Return article pointer and index, or nil and -1 if not found
-	return nil, -1
+	// Bind request body to newUser struct
+	if err := c.ShouldBindJSON(&newUser); err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error:"Unexpected error!"})
+		return
+	}
+
+	// Add new user to the local slice
+	newUser.ID = nextID
+	users = append(users, newUser)
+	nextID++
+
+	// Return the newly created user
+	c.JSON(http.StatusCreated, newUser)
 }
 
-// validateArticle validates article data
-func validateArticle(article Article) error {
-	// TODO: Implement validation
-	// Check required fields: Title, Content, Author
-	return nil
+// updateUser handles PUT /users/:id
+func updateUser(c *gin.Context) {
+    idParam := c.Param("id")
+	userID, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error:"Invalid User ID"})
+		return
+	}
+
+	var updatedUser User
+	if err := c.ShouldBindJSON(&updatedUser); err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error:"Unexpected Error!"})
+		return
+	}
+
+	// Iterate through the slice to find the user [3]
+	found := false
+	for i, user := range users {
+		if user.ID == userID {
+			// Update the user in the slice
+			users[i].Name = updatedUser.Name
+			users[i].Email = updatedUser.Email
+			users[i].Age = updatedUser.Age
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		c.JSON(http.StatusNotFound, Response{Error:"User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{Message:"User updated", Data:updatedUser})
+
+}
+
+// deleteUser handles DELETE /users/:id
+func deleteUser(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error:"Invalid user ID"})
+		return
+	}
+
+	// Find and remove the user
+	for i, user := range users {
+		if user.ID == id {
+			// Remove the user from the slice
+			users = append(users[:i], users[i+1:]...)
+			c.JSON(http.StatusOK, Response{Message:"User deleted successfully"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusNotFound, Response{Error:"User not found"})
+}
+
+// searchUsers handles GET /users/search?name=value
+func searchUsers(c *gin.Context) {
+// 1. Get search parameter from query (e.g., /user?id=2)
+	nameQuery := c.Query("name")
+    var foundUsers []User
+    for _, user := range users {
+    // Use strings.Contains for a partial match, and strings.ToLower for case-insensitivity
+        if strings.Contains(strings.ToLower(user.Name), strings.ToLower(nameQuery)) {
+            foundUsers = append(foundUsers, user)
+        }
+    }
+    c.JSON(http.StatusOK, foundUsers)
 }
