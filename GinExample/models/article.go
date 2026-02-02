@@ -1,28 +1,23 @@
-package model
+package models
 
-import (
-    "time"
-    "gorm.io/driver/mysql"
-    "gorm.io/gorm"
-)
+import "time"
 
+// Article represents a blog article resource
 type Article struct {
-    ID        int       `json:"id" gorm:"primaryKey"`
-    Title     string    `json:"title" binding:"required"`
-    Content   string    `json:"content" binding:"required"`
-    Author    string    `json:"author" binding:"required"`
-    CreatedAt time.Time `json:"created_at"`
-    UpdatedAt time.Time `json:"updated_at"`
+	ID        int       `json:"id" gorm:"primaryKey;autoIncrement" db:"id"`
+
+	Title     string    `json:"title" binding:"required,max=100" gorm:"not null;size:100"`
+	Content   string    `json:"content" binding:"required,max=250" gorm:"not null;size:250"`
+	Author    string    `json:"author" binding:"required,max=100" gorm:"not null;size:100"`
+	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
-var DB *gorm.DB
-
-func ConnectDatabase() {
-    database, err := gorm.Open(mysql.Open("articles.db"), &gorm.Config{})
-    if err != nil {
-        panic("Failed to connect to database!")
-    }
-
-    database.AutoMigrate(&Article{})
-    DB = database
+// APIResponse represents a standardized JSON response structure
+type APIResponse struct {
+	Success   bool        `json:"success"`
+	Data      interface{} `json:"data,omitempty"`
+	Message   string      `json:"message,omitempty"`
+	Error     string      `json:"error,omitempty"`
+	RequestID string      `json:"request_id,omitempty"`
 }
