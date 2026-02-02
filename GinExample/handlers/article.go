@@ -85,7 +85,11 @@ func (h *ArticleHandler) CreateArticle(c *gin.Context) {
 		return
 	}
 
-	article := h.service.Create(newArticle)
+	article, err := h.service.Create(newArticle)
+	if err != nil {
+		utils.HandleError(c, utils.NewValidationError(err.Error()))
+		return
+	}
 	utils.Created(c, article, "Article created successfully")
 }
 

@@ -22,7 +22,11 @@ func InitDB() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	err = DB.AutoMigrate(&Article{})
+	// Drop existing tables to avoid constraint issues
+	DB.Migrator().DropTable(&Article{}, &Category{})
+
+	// Migrate categories first, then articles
+	err = DB.AutoMigrate(&Category{}, &Article{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -31,13 +35,30 @@ func InitDB() {
 }
 
 func seedData() {
-	var count int64
-	DB.Model(&Article{}).Count(&count)
+	// Seed categories first
+	var categoryCount int64
+	DB.Model(&Category{}).Count(&categoryCount)
 	
-	if count == 0 {
+	if categoryCount == 0 {
+		categories := []Category{
+			{Name: "Technology", Description: "Articles about technology and programming"},
+			{Name: "Web Development", Description: "Web development tutorials and guides"},
+			{Name: "General", Description: "General articles and discussions"},
+		}
+		
+		for _, category := range categories {
+			DB.Create(&category)
+		}
+	}
+
+	// Seed articles
+	var articleCount int64
+	DB.Model(&Article{}).Count(&articleCount)
+	
+	if articleCount == 0 {
 		articles := []Article{
-			{Title: "Getting Started with Go", Content: "Go is a programming language...", Author: "John Doe"},
-			{Title: "Web Development with Gin", Content: "Gin is a web framework...", Author: "Jane Smith"},
+			{Title: "Getting Started with Go", Content: "Go is a programming language...", Author: "John Doe", CategoryID: 1},
+			{Title: "Web Development with Gin", Content: "Gin is a web framework...", Author: "Jane Smith", CategoryID: 2},
 		}
 		
 		for _, article := range articles {

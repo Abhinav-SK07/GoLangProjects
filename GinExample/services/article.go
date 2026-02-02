@@ -19,13 +19,13 @@ func NewArticleService(db *gorm.DB) *ArticleService {
 func (s *ArticleService) GetAll(page, limit int) []models.Article {
 	var articles []models.Article
 	offset := (page - 1) * limit
-	s.db.Offset(offset).Limit(limit).Find(&articles)
+	s.db.Preload("Category").Offset(offset).Limit(limit).Find(&articles)
 	return articles
 }
 
 func (s *ArticleService) GetByID(id int) (*models.Article, error) {
 	var article models.Article
-	result := s.db.First(&article, id)
+	result := s.db.Preload("Category").First(&article, id)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, errors.New("article not found")
@@ -35,9 +35,17 @@ func (s *ArticleService) GetByID(id int) (*models.Article, error) {
 	return &article, nil
 }
 
-func (s *ArticleService) Create(article models.Article) models.Article {
+func (s *ArticleService) Create(article models.Article) (*models.Article, error) {
+	// Validate category exists
+	var category models.Category
+	result := s.db.First(&category, article.CategoryID)
+	if result.Error != nil {
+		return nil, errors.New("invalid category ID")
+	}
+	
 	s.db.Create(&article)
-	return article
+	s.db.Preload("Category").First(&article, article.ID)
+	return &article, nil
 }
 
 func (s *ArticleService) Update(id int, input models.Article) (*models.Article, error) {
@@ -50,10 +58,21 @@ func (s *ArticleService) Update(id int, input models.Article) (*models.Article, 
 		return nil, result.Error
 	}
 
+	// Validate category exists if provided
+	if input.CategoryID != 0 {
+		var category models.Category
+		result := s.db.First(&category, input.CategoryID)
+		if result.Error != nil {
+			return nil, errors.New("invalid category ID")
+		}
+		article.CategoryID = input.CategoryID
+	}
+
 	article.Title = input.Title
 	article.Content = input.Content
 	article.Author = input.Author
 	s.db.Save(&article)
+	s.db.Preload("Category").First(&article, article.ID)
 	return &article, nil
 }
 
@@ -92,6 +111,9 @@ func ValidateArticle(article models.Article) error {
 	}
 	if len(article.Author) > 100 {
 		return errors.New("author must be less than 100 characters")
+	}
+	if article.CategoryID <= 0 {
+		return errors.New("category ID is required")
 	}
 	return nil
 }

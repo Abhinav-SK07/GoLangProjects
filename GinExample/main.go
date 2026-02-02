@@ -17,10 +17,12 @@ func main() {
 
 	// Initialize services
 	articleService := services.NewArticleService(models.DB)
+	categoryService := services.NewCategoryService(models.DB)
 	limiter := utils.NewIPRateLimiter()
 
 	// Initialize handlers
 	articleHandler := handlers.NewArticleHandler(articleService)
+	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
 	// Initialize Gin without default middleware
 	r := gin.New()
@@ -36,6 +38,8 @@ func main() {
 	r.GET("/ping", articleHandler.Ping)
 	r.GET("/articles", articleHandler.GetArticles)
 	r.GET("/articles/:id", articleHandler.GetArticle)
+	r.GET("/categories", categoryHandler.GetCategories)
+	r.GET("/categories/:id", categoryHandler.GetCategory)
 
 	// Protected Routes Group
 	protected := r.Group("/")
@@ -44,6 +48,9 @@ func main() {
 		protected.POST("/articles", middleware.ContentType(), articleHandler.CreateArticle)
 		protected.PUT("/articles/:id", middleware.ContentType(), articleHandler.UpdateArticle)
 		protected.DELETE("/articles/:id", articleHandler.DeleteArticle)
+		protected.POST("/categories", middleware.ContentType(), categoryHandler.CreateCategory)
+		protected.PUT("/categories/:id", middleware.ContentType(), categoryHandler.UpdateCategory)
+		protected.DELETE("/categories/:id", categoryHandler.DeleteCategory)
 		protected.GET("/admin/stats", articleHandler.GetStats)
 	}
 
