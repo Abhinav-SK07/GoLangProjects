@@ -23,10 +23,10 @@ func InitDB() {
 	}
 
 	// Drop existing tables to avoid constraint issues
-	DB.Migrator().DropTable(&Article{}, &Category{})
+	DB.Migrator().DropTable(&Article{}, &Category{}, &User{})
 
-	// Migrate categories first, then articles
-	err = DB.AutoMigrate(&Category{}, &Article{})
+	// Migrate in correct order
+	err = DB.AutoMigrate(&User{}, &Category{}, &Article{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -35,7 +35,22 @@ func InitDB() {
 }
 
 func seedData() {
-	// Seed categories first
+	// Seed users first
+	var userCount int64
+	DB.Model(&User{}).Count(&userCount)
+	
+	if userCount == 0 {
+		users := []User{
+			{Username: "admin", Email: "admin@example.com", Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", Role: "admin", Active: true}, // password: password
+			{Username: "user1", Email: "user1@example.com", Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", Role: "user", Active: true},
+		}
+		
+		for _, user := range users {
+			DB.Create(&user)
+		}
+	}
+
+	// Seed categories
 	var categoryCount int64
 	DB.Model(&Category{}).Count(&categoryCount)
 	

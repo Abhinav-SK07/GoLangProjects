@@ -37,34 +37,56 @@ func Logging() gin.HandlerFunc {
 	}
 }
 
-func Auth() gin.HandlerFunc {
-	validKeys := map[string]string{
-		"admin-key-123": "admin",
-		"user-key-456":  "user",
-	}
-
+func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		apiKey := c.GetHeader("X-API-Key")
-		if apiKey == "" {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.APIResponse{
 				Error:     "Unauthorized",
-				Message:   "API Key is required",
+				Message:   "Authorization header is required",
 				RequestID: c.GetString("requestID"),
 			})
 			return
 		}
 
-		role, exists := validKeys[apiKey]
-		if !exists {
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == authHeader {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.APIResponse{
 				Error:     "Unauthorized",
-				Message:   "Invalid API Key",
+				Message:   "Bearer token required",
 				RequestID: c.GetString("requestID"),
 			})
 			return
 		}
 
-		c.Set("role", role)
+		claims, err := utils.ValidateToken(tokenString)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, models.APIResponse{
+				Error:     "Unauthorized",
+				Message:   "Invalid token",
+				RequestID: c.GetString("requestID"),
+			})
+			return
+		}
+
+		c.Set("userID", claims.UserID)
+		c.Set("username", claims.Username)
+		c.Set("role", claims.Role)
+		c.Next()
+	}
+}
+
+func AdminOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role := c.GetString("role")
+		if role != "admin" {
+			c.AbortWithStatusJSON(http.StatusForbidden, models.APIResponse{
+				Error:     "Forbidden",
+				Message:   "Admin access required",
+				RequestID: c.GetString("requestID"),
+			})
+			return
+		}
 		c.Next()
 	}
 }
