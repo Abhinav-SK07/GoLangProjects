@@ -19,13 +19,19 @@ func NewAuthHandler(service *services.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req models.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.AuthResponse{
 			Success: false,
 			Message: "Invalid input: " + err.Error(),
 		})
 		return
+	}
+
+	user := models.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
 	}
 
 	createdUser, err := h.service.Register(user)

@@ -5,13 +5,20 @@ import "time"
 // User represents a user in the system
 type User struct {
 	ID       int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	Username string    `json:"username" binding:"required,min=3,max=20" gorm:"not null;size:20;uniqueIndex"`
-	Email    string    `json:"email" binding:"required,email" gorm:"not null;size:100;uniqueIndex"`
+	Username string    `json:"username" gorm:"not null;size:20;uniqueIndex"`
+	Email    string    `json:"email" gorm:"not null;size:100;uniqueIndex"`
 	Password string    `json:"-" gorm:"not null;size:255"`
 	Role     string    `json:"role" gorm:"not null;default:'user';size:10"`
 	Active   bool      `json:"active" gorm:"not null;default:true"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+}
+
+// RegisterRequest for user registration
+type RegisterRequest struct {
+	Username string `json:"username" binding:"required,min=3,max=20"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
 }
 
 // AuthResponse represents authentication response
