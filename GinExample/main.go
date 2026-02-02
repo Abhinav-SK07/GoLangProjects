@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"main/models/model"
+	"github.com/Abhinav-SK07/GoLangProjects/GinExample/"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/time/rate"

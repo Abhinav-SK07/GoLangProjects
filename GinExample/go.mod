@@ -1,4 +1,4 @@
-module github.com/Abhinav-SK07/GoLang/api1
+module github.com/Abhinav-SK07/GoLangProjects/GinExample
 go 1.25.6
 
 require (
