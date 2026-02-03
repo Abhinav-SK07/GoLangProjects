@@ -23,7 +23,7 @@ func InitDB() {
 	}
 
 	// Drop existing tables to avoid constraint issues
-	DB.Migrator().DropTable(&Article{}, &Category{}, &User{})
+	//DB.Migrator().DropTable(&Article{}, &Category{}, &User{})
 
 	// Migrate in correct order
 	err = DB.AutoMigrate(&User{}, &Category{}, &Article{})
